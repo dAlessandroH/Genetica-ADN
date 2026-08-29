@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADN · Estructura de la doble hélice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0A1024;
+      --bg-2: #0E1730;
+      --panel: #131E3D;
+      --line: rgba(160, 180, 230, .16);
+      --ink: #E7ECFA;
+      --muted: #93A0C6;
+      --dim: #6E7CA6;
+      --bone: #DCE3F5;
+      --A: #4FC3F7;
+      --T: #FFC145;
+      --C: #6EE7A8;
+      --G: #C792EA;
+      --display: "Fraunces", Georgia, serif;
+      --body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(900px 600px at 50% -5%, #17244a 0%, transparent 65%),
+        var(--bg);
+      color: var(--ink);
+      font-family: var(--body);
+      font-weight: 300;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 24px
+    }
+
+    /* ---------- micro-tipografía de laboratorio ---------- */
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    /* ---------- encabezado ---------- */
+    header {
+      padding: 54px 0 8px;
+      text-align: center
+    }
+
+    header h1 {
+      font-family: var(--display);
+      font-optical-sizing: auto;
+      font-weight: 400;
+      font-size: clamp(38px, 7vw, 74px);
+      line-height: 1.02;
+      margin: 14px 0 6px;
+      letter-spacing: -.02em;
+    }
+
+    header h1 em {
+      font-style: italic;
+      font-weight: 300;
+      color: #A9C4F5
+    }
+
+    header p.sub {
+      max-width: 52ch;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    /* ---------- escenario de la hélice ---------- */
+    .stage {
+      margin: 26px auto 0;
+      display: grid;
+      grid-template-columns: 1fr minmax(320px, 480px) 1fr;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .helix-box {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(20, 32, 66, .85), rgba(10, 16, 36, .85));
+      box-shadow: 0 30px 90px -40px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .05);
+      overflow: hidden;
+    }
+
+    .helix-box::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 34px 34px;
+      opacity: .28;
+      pointer-events: none;
+    }
+
+    .corner {
+      position: absolute;
+      top: 12px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .16em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    .corner.l {
+      left: 14px
+    }
+
+    .corner.r {
+      right: 14px
+    }
+
+    svg#helix {
+      display: block;
+      width: 100%;
+      height: auto;
+      position: relative
+    }
+
+    /* ---------- panel de bases ---------- */
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .side.right {
+      align-items: flex-start
+    }
+
+    .side h2 {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin: 0 0 4px;
+    }
+
+    .base-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: var(--ink);
+      font-family: var(--body);
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      text-align: left;
+      transition: background .18s ease, border-color .18s ease, transform .18s ease;
+    }
+
+    .base-btn:hover {
+      background: rgba(255, 255, 255, .07);
+      transform: translateY(-1px)
+    }
+
+    .base-btn:focus-visible {
+      outline: 2px solid #7FB0FF;
+      outline-offset: 3px
+    }
+
+    .base-btn[aria-pressed="true"] {
+      background: rgba(255, 255, 255, .11);
+      border-color: rgba(190, 210, 255, .45)
+    }
+
+    .dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      flex: none;
+      box-shadow: 0 0 12px currentColor
+    }
+
+    .base-btn .letter {
+      font-family: var(--mono);
+      font-weight: 500;
+      width: 12px
+    }
+
+    .base-btn small {
+      display: block;
+      color: var(--dim);
+      font-size: 11.5px;
+      font-family: var(--mono);
+      letter-spacing: .04em
+    }
+
+    .pair-note {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
+      line-height: 1.9;
+      letter-spacing: .03em;
+      margin-top: 2px;
+    }
+
+    .pair-note b {
+      color: var(--muted);
+      font-weight: 400
+    }
+
+    /* ---------- controles ---------- */
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 22px 0 4px;
+    }
+
+    .ctrl {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 20px;
+      cursor: pointer;
+      transition: color .18s, border-color .18s, background .18s;
+    }
+
+    .ctrl:hover {
+      color: var(--ink);
+      border-color: rgba(190, 210, 255, .45);
+      background: rgba(255, 255, 255, .04)
+    }
+
+    .ctrl:focus-visible {
+      outline: 2px solid #7FB0FF;
+      outline-offset: 3px
+    }
+
+    /* ---------- secciones de texto ---------- */
+    main {
+      padding: 70px 0 90px
+    }
+
+    section {
+      margin-bottom: 64px
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 18px;
+      flex-wrap: wrap
+    }
+
+    .sec-head h2 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(26px, 4vw, 40px);
+      margin: 0;
+      letter-spacing: -.015em;
+    }
+
+    .rule {
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+      min-width: 40px
+    }
+
+    .lead {
+      font-size: 18.5px;
+      max-width: 70ch;
+      color: #D5DDF3
+    }
+
+    .lead strong {
+      font-weight: 600;
+      color: #fff
+    }
+
+    .lead .term {
+      color: #A9C4F5;
+      font-weight: 400
+    }
+
+    /* ---------- tarjetas de partes ---------- */
+    .parts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(285px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px 22px 24px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .045), rgba(255, 255, 255, .012));
+      position: relative;
+    }
+
+    .card .tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--dim);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .card h3 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: 21px;
+      margin: 0 0 10px;
+      letter-spacing: -.01em;
+    }
+
+    .card p {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: #CBD5EE
+    }
+
+    .card p:last-child {
+      margin-bottom: 0
+    }
+
+    .card .plain {
+      border-left: 2px solid rgba(160, 180, 230, .35);
+      padding-left: 12px;
+      color: var(--muted);
+      font-size: 14.5px;
+    }
+
+    .swatch {
+      position: absolute;
+      top: 22px;
+      right: 22px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%
+    }
+
+    /* ---------- dato curioso ---------- */
+    .curious {
+      border: 1px solid rgba(160, 180, 230, .3);
+      border-radius: 22px;
+      padding: clamp(26px, 4vw, 46px);
+      background: linear-gradient(135deg, rgba(79, 195, 247, .10), rgba(199, 146, 234, .10));
+    }
+
+    .curious .eyebrow {
+      color: #A9C4F5
+    }
+
+    .curious p {
+      font-size: 17.5px;
+      max-width: 66ch;
+      color: #DDE4F7
+    }
+
+    .curious .big {
+      font-family: var(--display);
+      font-weight: 400;
+      font-style: italic;
+      font-size: clamp(24px, 3.6vw, 36px);
+      line-height: 1.25;
+      margin: 12px 0 18px;
+      color: #fff;
+    }
+
+    .stats {
+      display: flex;
+      gap: 38px;
+      flex-wrap: wrap;
+      margin-top: 26px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line)
+    }
+
+    .stat b {
+      display: block;
+      font-family: var(--mono);
+      font-size: 26px;
+      font-weight: 500;
+      color: #fff;
+      letter-spacing: -.01em;
+    }
+
+    .stat span {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--dim)
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 26px 0 40px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    /* ---------- responsivo ---------- */
+    @media (max-width:900px) {
+      .stage {
+        grid-template-columns: 1fr;
+        max-width: 480px
+      }
+
+      .side {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center
+      }
+
+      .side h2,
+      .pair-note {
+        width: 100%;
+        text-align: center
+      }
+
+      .base-btn {
+        width: auto
+      }
+
+      .side.left {
+        order: 2
+      }
+
+      .side.right {
+        order: 3;
+        align-items: center
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      html {
+        scroll-behavior: auto
+      }
+
+      .base-btn:hover {
+        transform: none
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">Universidad Santa Fe · Genetica · 3C</p>
+      <h1>El ADN <em></em></h1>
+      <p class="eyebrow">Docente: Dra. Jessica Soto Espinosa.</p>
+      <p class="sub">E.M David Alessandro Hernandez Cervantes</p>
+      <p class="sub">E.M Esmeralda De Luna Gonzalez</p>
+      <p class="sub">E.M Cristina Marchan Lopez</p>
+      <p class="sub">E.M Alfonsina Davila Ramos</p>
+      <p class="sub">E.M Mariana Gutierrez Gonzalez</p>
+      <img src="logouni.png" alt="" height="250px" width="200px">
+    </header>
+
+    <div class="stage">
+      <div class="side left">
+        <h2>Bases nitrogenadas</h2>
+        <button class="base-btn" data-base="A" aria-pressed="false">
+          <span class="dot" style="background:var(--A);color:var(--A)"></span>
+          <span class="letter">A</span>
+          <span>Adenina <small>purina · 2 anillos</small></span>
+        </button>
+        <button class="base-btn" data-base="T" aria-pressed="false">
+          <span class="dot" style="background:var(--T);color:var(--T)"></span>
+          <span class="letter">T</span>
+          <span>Timina <small>pirimidina · 1 anillo</small></span>
+        </button>
+        <button class="base-btn" data-base="C" aria-pressed="false">
+          <span class="dot" style="background:var(--C);color:var(--C)"></span>
+          <span class="letter">C</span>
+          <span>Citosina <small>pirimidina · 1 anillo</small></span>
+        </button>
+        <button class="base-btn" data-base="G" aria-pressed="false">
+          <span class="dot" style="background:var(--G);color:var(--G)"></span>
+          <span class="letter">G</span>
+          <span>Guanina <small>purina · 2 anillos</small></span>
+        </button>
+        <p class="pair-note">Toca una base para seguirla en la hélice.</p>
+      </div>
+
+      <div class="helix-box">
+        <svg id="helix" viewBox="0 0 460 660" role="img"
+          aria-label="Animación de una doble hélice de ADN girando, con sus cadenas de azúcar-fosfato, pares de bases y puentes de hidrógeno señalados.">
+          <g id="g-rungs"></g>
+          <g id="g-strands">
+            <path id="strandA" fill="none" stroke="var(--bone)" stroke-width="5" stroke-linecap="round" opacity=".85" />
+            <path id="strandB" fill="none" stroke="var(--bone)" stroke-width="5" stroke-linecap="round" opacity=".85" />
+          </g>
+          <g id="g-bonds"></g>
+          <g id="g-nodes"></g>
+          <g id="g-labels"></g>
+        </svg>
+      </div>
+
+      <div class="side right">
+        <h2>Regla de apareamiento</h2>
+        <p class="pair-note">
+          <b>A = T</b> · 2 puentes de hidrógeno<br>
+          <b>C ≡ G</b> · 3 puentes de hidrógeno<br><br>
+          Una purina siempre se une a una pirimidina.<br>
+          Por eso la escalera mide <b>siempre 2 nm</b> de ancho.<br><br>
+          Las cadenas son <b>antiparalelas</b>:<br>
+          una corre 5'→3' y la otra 3'→5'.
+        </p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl" id="btnPlay" aria-pressed="true">Pausar giro</button>
+      <button class="ctrl" id="btnLabels" aria-pressed="true">Ocultar etiquetas</button>
+      <button class="ctrl" id="btnReset">Quitar resaltado</button>
+    </div>
+  </div>
+
+  <main class="wrap">
+
+    <section>
+      <div class="sec-head">
+        <p class="eyebrow">01</p>
+        <h2>¿Qué es el ADN?</h2>
+        <div class="rule"></div>
+      </div>
+      <p class="lead">
+        El <strong>ácido desoxirribonucleico</strong> es la molécula donde cada ser vivo guarda las instrucciones
+        para construirse y funcionar. Dicho simple: es el <strong>manual de la célula</strong>, escrito con un
+        alfabeto de solo cuatro letras —<span class="term">A, T, C y G</span>— y el orden de esas letras es el mensaje.
+        Un tramo de ese mensaje que alcanza para fabricar una proteína se llama <span class="term">gen</span>.
+      </p>
+      <p class="lead" style="margin-top:16px">
+        Vive dentro del <strong>núcleo</strong> de cada una de tus células (y una copia pequeña y circular dentro de
+        las mitocondrias). Ahí no está suelto: se enrolla sobre unas proteínas llamadas <span
+          class="term">histonas</span>
+        formando la <span class="term">cromatina</span>, que al compactarse al máximo —justo antes de que la célula se
+        divida— se ve al microscopio como los <span class="term">cromosomas</span>. Los humanos tenemos 46, en 23 pares.
+      </p>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <p class="eyebrow">02</p>
+        <h2>Sus partes</h2>
+        <div class="rule"></div>
+      </div>
+      <div class="parts">
+
+        <div class="card">
+          <span class="tag">Unidad básica</span>
+          <h3>Nucleótido</h3>
+          <p>Es el ladrillo con el que está hecho todo el ADN. Cada nucleótido tiene exactamente tres piezas unidas:
+            un grupo fosfato, un azúcar (desoxirribosa) y una base nitrogenada.</p>
+          <p class="plain">Ejemplo: si el azúcar lleva pegada una adenina, ese nucleótido se llama adenosín monofosfato.
+            Millones de ellos en fila forman una cadena de ADN.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">Esqueleto · parte 1</span>
+          <h3>Grupo fosfato</h3>
+          <p>Un fósforo rodeado de oxígenos. Es la pieza que <strong>une un nucleótido con el siguiente</strong>,
+            enlazando el carbono 5' de un azúcar con el carbono 3' del azúcar de abajo: el enlace fosfodiéster.</p>
+          <p class="plain">Tiene carga negativa, y eso explica dos cosas: que la molécula sea un <em>ácido</em>,
+            y que en el laboratorio el ADN se pueda separar por electroforesis, porque migra hacia el polo positivo.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">Esqueleto · parte 2</span>
+          <h3>Desoxirribosa</h3>
+          <p>Un azúcar de cinco carbonos (una pentosa). Se llama <em>desoxi</em>rribosa porque le falta un oxígeno
+            en el carbono 2' comparada con la ribosa, que es el azúcar del ARN.</p>
+          <p class="plain">Ese oxígeno que falta es lo que vuelve al ADN mucho más estable que al ARN: por eso el ADN
+            sirve para archivar la información durante décadas y el ARN solo para mensajes temporales.</p>
+        </div>
+
+        <div class="card">
+          <span class="swatch" style="background:linear-gradient(90deg,var(--A),var(--G))"></span>
+          <span class="tag">El mensaje</span>
+          <h3>Bases nitrogenadas</h3>
+          <p>Son las cuatro "letras". Se dividen en <strong>purinas</strong> (adenina y guanina, de dos anillos) y
+            <strong>pirimidinas</strong> (citosina y timina, de un solo anillo).</p>
+          <p>Se aparean siempre igual: <strong>A con T</strong> y <strong>C con G</strong>. A esto se le llama
+            complementariedad.</p>
+          <p class="plain">Por eso, si una cadena dice A-T-G-C, la otra dice forzosamente T-A-C-G. Conociendo una,
+            puedes escribir la otra: así la célula copia su ADN sin inventar nada.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">La unión</span>
+          <h3>Puentes de hidrógeno</h3>
+          <p>Son las uniones débiles que mantienen juntas a las dos cadenas por el centro de la escalera.
+            Entre <strong>A y T hay 2</strong>; entre <strong>C y G hay 3</strong>.</p>
+          <p class="plain">Que sean débiles es una ventaja: permiten "abrir" la hélice como un cierre para replicarla
+            o transcribirla, y volver a cerrarla. Y como C–G tiene un puente más, el ADN rico en C y G resiste
+            temperaturas más altas antes de separarse.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">La forma</span>
+          <h3>Doble hélice antiparalela</h3>
+          <p>Las dos cadenas se enrollan una sobre otra hacia la derecha, y corren en <strong>sentidos
+              opuestos</strong>:
+            una va de 5' a 3' y la de enfrente de 3' a 5'.</p>
+          <p>Da una vuelta completa cada <strong>10 pares de bases</strong> (unos 3.4 nm), y al enrollarse deja dos
+            canales de distinto tamaño: el surco mayor y el surco menor.</p>
+          <p class="plain">Esos surcos no son adorno: son la puerta por donde las proteínas leen la secuencia sin
+            tener que abrir la hélice. Watson y Crick describieron esta estructura en 1953, apoyados en la
+            imagen de difracción de rayos X obtenida por Rosalind Franklin.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <section>
+      <div class="curious">
+        <p class="eyebrow">03 · Dato curioso</p>
+        <p class="big">Cabe en un núcleo de 6 micras, pero mide dos metros.</p>
+        <p>
+          Si sacaras el ADN de <strong>una sola</strong> de tus células y lo estiraras, mediría unos 2 metros. Aun así
+          está guardado en un núcleo de 0.006 milímetros: es como enrollar 20 kilómetros de hilo dentro de una pelota
+          de tenis, y que además se pueda desenrollar justo por donde hace falta leer.
+        </p>
+        <p style="margin-top:14px">
+          Y si unieras el ADN de los ~37 billones de células de tu cuerpo, formarías un hilo de más de 70 mil millones
+          de kilómetros: suficiente para ir y volver del Sol <strong>más de 200 veces</strong>. Con todo eso, tu
+          secuencia y la de cualquier otra persona son idénticas en un 99.9%.
+        </p>
+        <div class="stats">
+          <div class="stat"><b>2 nm</b><span>Ancho de la hélice</span></div>
+          <div class="stat"><b>10 pb</b><span>Por cada vuelta</span></div>
+          <div class="stat"><b>3 200 M</b><span>Pares de bases</span></div>
+          <div class="stat"><b>99.9 %</b><span>Igual entre personas</span></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="wrap">Maqueta de ADN · Developed by Alessandro.</footer>
+
+  <script>
+    (function () {
+      const SVG = "http://www.w3.org/2000/svg";
+      const svg = document.getElementById('helix');
+      const gRungs = document.getElementById('g-rungs');
+      const gBonds = document.getElementById('g-bonds');
+      const gNodes = document.getElementById('g-nodes');
+      const gLabels = document.getElementById('g-labels');
+      const pathA = document.getElementById('strandA');
+      const pathB = document.getElementById('strandB');
+
+      const CX = 230,
+        R = 92,
+        TOP = 62,
+        BOT = 602;
+      const N = 26; // pares de bases visibles
+      const SP = (BOT - TOP) / (N - 1);
+      const STEP = (Math.PI * 2) / 10; // 10 pares de bases por vuelta (como el ADN real)
+
+      const COLOR = {
+        A: '#4FC3F7',
+        T: '#FFC145',
+        C: '#6EE7A8',
+        G: '#C792EA'
+      };
+      const COMP = {
+        A: 'T',
+        T: 'A',
+        C: 'G',
+        G: 'C'
+      };
+      const SEQ = "ATGCCTAGGACTTGCAAGCTTAGCGA".split('');
+
+      let phase = 0,
+        playing = true,
+        showLabels = true,
+        selected = null;
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduced) playing = false;
+
+      // ---- construir elementos una sola vez ----
+      const rungs = [],
+        nodes = [],
+        bonds = [];
+      for (let i = 0; i < N; i++) {
+        const left = SEQ[i],
+          right = COMP[left];
+
+        const halfL = document.createElementNS(SVG, 'line');
+        const halfR = document.createElementNS(SVG, 'line');
+        halfL.setAttribute('stroke', COLOR[left]);
+        halfR.setAttribute('stroke', COLOR[right]);
+        halfL.setAttribute('stroke-linecap', 'round');
+        halfR.setAttribute('stroke-linecap', 'round');
+        gRungs.append(halfL, halfR);
+        rungs.push({
+          halfL,
+          halfR,
+          left,
+          right
+        });
+
+        const nb = COMP[left] && (left === 'C' || left === 'G') ? 3 : 2;
+        const set = [];
+        for (let k = 0; k < nb; k++) {
+          const d = document.createElementNS(SVG, 'circle');
+          d.setAttribute('r', '1.6');
+          d.setAttribute('fill', '#F2F6FF');
+          gBonds.appendChild(d);
+          set.push(d);
+        }
+        bonds.push(set);
+
+        const mk = (base) => {
+          const g = document.createElementNS(SVG, 'g');
+          const c = document.createElementNS(SVG, 'circle');
+          c.setAttribute('fill', COLOR[base]);
+          const t = document.createElementNS(SVG, 'text');
+          t.setAttribute('text-anchor', 'middle');
+          t.setAttribute('font-family', 'IBM Plex Mono, monospace');
+          t.setAttribute('font-size', '9');
+          t.setAttribute('font-weight', '500');
+          t.setAttribute('fill', '#0A1024');
+          t.textContent = base;
+          g.append(c, t);
+          gNodes.appendChild(g);
+          return {
+            g,
+            c,
+            t,
+            base
+          };
+        };
+        nodes.push([mk(left), mk(right)]);
+      }
+
+      // ---- etiquetas / anotaciones ----
+      function label(x, y, text, anchor) {
+        const g = document.createElementNS(SVG, 'g');
+        const t = document.createElementNS(SVG, 'text');
+        t.setAttribute('x', x);
+        t.setAttribute('y', y);
+        t.setAttribute('text-anchor', anchor);
+        t.setAttribute('font-family', 'IBM Plex Mono, monospace');
+        t.setAttribute('font-size', '10.5');
+        t.setAttribute('letter-spacing', '.08em');
+        t.setAttribute('fill', '#93A0C6');
+        t.textContent = text;
+        const l = document.createElementNS(SVG, 'line');
+        l.setAttribute('stroke', 'rgba(160,180,230,.45)');
+        l.setAttribute('stroke-width', '1');
+        l.setAttribute('stroke-dasharray', '2 3');
+        g.append(l, t);
+        gLabels.appendChild(g);
+        return {
+          g,
+          t,
+          l
+        };
+      }
+      const labSkeleton = label(14, 128, 'esqueleto azúcar–fosfato', 'start');
+      const labPair = label(14, 508, 'par de bases', 'start');
+      const labBond = label(446, 452, 'puentes de hidrógeno', 'end');
+
+      // bracket de una vuelta completa
+      const turnTop = TOP + 2 * SP,
+        turnBot = TOP + 12 * SP;
+      const bracket = document.createElementNS(SVG, 'path');
+      bracket.setAttribute('d', `M 424 ${turnTop} h 8 V ${turnBot} h -8`);
+      bracket.setAttribute('fill', 'none');
+      bracket.setAttribute('stroke', 'rgba(160,180,230,.5)');
+      bracket.setAttribute('stroke-width', '1');
+      gLabels.appendChild(bracket);
+      const turnTxt = document.createElementNS(SVG, 'text');
+      turnTxt.setAttribute('transform', `translate(447 ${(turnTop+turnBot)/2}) rotate(-90)`);
+      turnTxt.setAttribute('text-anchor', 'middle');
+      turnTxt.setAttribute('font-family', 'IBM Plex Mono, monospace');
+      turnTxt.setAttribute('font-size', '10.5');
+      turnTxt.setAttribute('letter-spacing', '.08em');
+      turnTxt.setAttribute('fill', '#93A0C6');
+      gLabels.appendChild(turnTxt);
+
+      // indicador de ancho
+      const wLine = document.createElementNS(SVG, 'path');
+      wLine.setAttribute('d', `M ${CX-R} 632 h ${2*R} M ${CX-R} 628 v 8 M ${CX+R} 628 v 8`);
+      wLine.setAttribute('fill', 'none');
+      wLine.setAttribute('stroke', 'rgba(160,180,230,.5)');
+      wLine.setAttribute('stroke-width', '1');
+      gLabels.appendChild(wLine);
+      const wTxt = document.createElementNS(SVG, 'text');
+      wTxt.setAttribute('x', CX);
+      wTxt.setAttribute('y', 650);
+      wTxt.setAttribute('text-anchor', 'middle');
+      wTxt.setAttribute('font-family', 'IBM Plex Mono, monospace');
+      wTxt.setAttribute('font-size', '10.5');
+      wTxt.setAttribute('letter-spacing', '.08em');
+      wTxt.setAttribute('fill', '#93A0C6');
+      wTxt.textContent = '2 nm de ancho';
+      gLabels.appendChild(wTxt);
+
+      // ---- render ----
+      function xAt(y, side) {
+        const a = phase + ((y - TOP) / SP) * STEP;
+        return side === 0 ? CX + R * Math.sin(a) : CX - R * Math.sin(a);
+      }
+
+      function render() {
+        // cadenas (esqueleto azúcar-fosfato)
+        let dA = '',
+          dB = '';
+        for (let s = 0; s <= 100; s++) {
+          const y = TOP + (BOT - TOP) * s / 100;
+          const a = phase + ((y - TOP) / SP) * STEP;
+          const x1 = CX + R * Math.sin(a),
+            x2 = CX - R * Math.sin(a);
+          dA += (s ? 'L' : 'M') + x1.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+          dB += (s ? 'L' : 'M') + x2.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+        }
+        pathA.setAttribute('d', dA);
+        pathB.setAttribute('d', dB);
+
+        for (let i = 0; i < N; i++) {
+          const y = TOP + i * SP;
+          const a = phase + i * STEP;
+          const s = Math.sin(a),
+            c = Math.cos(a);
+          const x1 = CX + R * s,
+            x2 = CX - R * s;
+          const z1 = c,
+            z2 = -c;
+
+          const f1 = 0.55 + 0.45 * (z1 + 1) / 2;
+          const f2 = 0.55 + 0.45 * (z2 + 1) / 2;
+          const o1 = 0.42 + 0.58 * (z1 + 1) / 2;
+          const o2 = 0.42 + 0.58 * (z2 + 1) / 2;
+          const span = Math.abs(x1 - x2);
+          const gap = Math.min(16, span * 0.30);
+
+          // medio travesaño de cada lado
+          const r = rungs[i];
+          const dir = x1 < x2 ? 1 : -1;
+          r.halfL.setAttribute('x1', x1);
+          r.halfL.setAttribute('y1', y);
+          r.halfL.setAttribute('x2', CX - dir * gap / 2);
+          r.halfL.setAttribute('y2', y);
+          r.halfR.setAttribute('x1', x2);
+          r.halfR.setAttribute('y1', y);
+          r.halfR.setAttribute('x2', CX + dir * gap / 2);
+          r.halfR.setAttribute('y2', y);
+          r.halfL.setAttribute('stroke-width', (2.6 * f1).toFixed(2));
+          r.halfR.setAttribute('stroke-width', (2.6 * f2).toFixed(2));
+          const dimL = selected && selected !== r.left ? 0.12 : 1;
+          const dimR = selected && selected !== r.right ? 0.12 : 1;
+          r.halfL.setAttribute('opacity', (o1 * 0.85 * dimL).toFixed(2));
+          r.halfR.setAttribute('opacity', (o2 * 0.85 * dimR).toFixed(2));
+
+          // puentes de hidrógeno (puntos en el centro)
+          const set = bonds[i];
+          const vis = Math.max(0, Math.min(1, (span - 40) / 60));
+          set.forEach((d, k) => {
+            const off = (k - (set.length - 1) / 2) * 3.4;
+            d.setAttribute('cx', CX + off * dir);
+            d.setAttribute('cy', y);
+            d.setAttribute('opacity', (vis * 0.9 * Math.max(dimL, dimR)).toFixed(2));
+          });
+
+          // nucleótidos
+          const [n1, n2] = nodes[i];
+          const put = (n, x, f, o) => {
+            const dim = selected && selected !== n.base ? 0.1 : 1;
+            n.c.setAttribute('cx', x);
+            n.c.setAttribute('cy', y);
+            n.c.setAttribute('r', (7.2 * f).toFixed(2));
+            n.c.setAttribute('opacity', (o * dim).toFixed(2));
+            n.t.setAttribute('x', x);
+            n.t.setAttribute('y', y + 3.2);
+            n.t.setAttribute('opacity', (Math.max(0, (f - 0.86) / 0.14) * dim).toFixed(2));
+          };
+          put(n1, x1, f1, o1);
+          put(n2, x2, f2, o2);
+        }
+
+        // anotaciones vivas
+        if (showLabels) {
+          const ySk = 128,
+            xSk = xAt(ySk, 0);
+          labSkeleton.l.setAttribute('x1', 176);
+          labSkeleton.l.setAttribute('y1', ySk - 4);
+          labSkeleton.l.setAttribute('x2', xSk);
+          labSkeleton.l.setAttribute('y2', ySk - 4);
+
+          const yPr = 508,
+            xPr = (xAt(yPr, 0) + CX) / 2;
+          labPair.l.setAttribute('x1', 100);
+          labPair.l.setAttribute('y1', yPr - 4);
+          labPair.l.setAttribute('x2', xPr);
+          labPair.l.setAttribute('y2', yPr - 4);
+
+          const yBd = 452;
+          labBond.l.setAttribute('x1', 300);
+          labBond.l.setAttribute('y1', yBd - 4);
+          labBond.l.setAttribute('x2', CX);
+          labBond.l.setAttribute('y2', yBd - 4);
+        }
+      }
+
+      function loop() {
+        if (playing) phase += 0.011;
+        render();
+        requestAnimationFrame(loop);
+      }
+      render();
+      requestAnimationFrame(loop);
+
+      // ---- controles ----
+      const btnPlay = document.getElementById('btnPlay');
+      btnPlay.textContent = playing ? 'Pausar giro' : 'Reanudar giro';
+      btnPlay.addEventListener('click', () => {
+        playing = !playing;
+        btnPlay.textContent = playing ? 'Pausar giro' : 'Reanudar giro';
+        btnPlay.setAttribute('aria-pressed', String(playing));
+      });
+
+      const btnLabels = document.getElementById('btnLabels');
+      btnLabels.addEventListener('click', () => {
+        showLabels = !showLabels;
+        gLabels.style.display = showLabels ? '' : 'none';
+        btnLabels.textContent = showLabels ? 'Ocultar etiquetas' : 'Mostrar etiquetas';
+        btnLabels.setAttribute('aria-pressed', String(showLabels));
+      });
+
+      const baseBtns = [...document.querySelectorAll('.base-btn')];
+
+      function setSelected(b) {
+        selected = b;
+        baseBtns.forEach(x => x.setAttribute('aria-pressed', String(x.dataset.base === b)));
+        render();
+      }
+      baseBtns.forEach(btn => btn.addEventListener('click', () => {
+        setSelected(selected === btn.dataset.base ? null : btn.dataset.base);
+      }));
+      document.getElementById('btnReset').addEventListener('click', () => setSelected(null));
+    })();
+  </script>
+</body>
+
+</html>
